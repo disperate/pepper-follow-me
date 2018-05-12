@@ -1,8 +1,10 @@
+import threading
 from time import sleep
 
 
 class FollowPersonModule:
     def __init__(self, session):
+        self.do_run = True
 
         self.motion_service = session.service("ALMotion")
         self.posture_service = session.service("ALRobotPosture")
@@ -43,35 +45,38 @@ class FollowPersonModule:
         print "FollowPersonModule successfully initiated."
 
     def follow(self):
-        print("starting to follow")
 
-        while True:
+        t = threading.currentThread()
+        while getattr(t, "do_run", True):
             sleep(1)
             if self.running:
                 if not self.tracker_service.isActive():
-                    print(self.tracker_service.isActive())
                     print("tracker activated")
                     self.tracker_service.trackEvent(self.event_name)
                 # print(self.motion_service.getOrthogonalSecurityDistance())
                 # print(self.motion_service.getTangentialSecurityDistance())
 
                 position = self.tracker_service.getTargetPosition(0)
+                if not position:
+                    print("No person in sight")
+                    # self.tts.say("I cant see you. Please get in front of me.")
+
                 print(position)
+
                 self.tracker_service.setRelativePosition([-0.5, 0.0, 0.0, 0.1, 0.1, 0.3])
             else:
                 if self.tracker_service.isActive():
-                    print(self.tracker_service.isActive())
                     self.tracker_service.stopTracker()
                     print("tracker deactivated")
 
-        print "ALTracker stopped."
+        print "FollowPersonModule stopped."
 
     def change_mode(self, text):
         if text == 'stop':
             self.running = False
         if text == 'follow':
             self.running = True
-        print("callback, param was " + text)
+        print(text)
 
     def __del__(self):
         self.tracker_service.stopTracker()

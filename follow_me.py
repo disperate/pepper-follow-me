@@ -1,24 +1,25 @@
 from threading import Thread
 
-import qi
-
 from follow_person_module import FollowPersonModule
 from speech_module import SpeechModule
 
-if __name__ == "__main__":
-    connection_url = "amber.local:9559"
-    app = qi.Application(["--qi-url=" + connection_url])
-    app.start()
-    session = app.session
 
-    FollowPersonModule = FollowPersonModule(session)
-    SpeechEventListener = SpeechModule(session, "SpeechEventListener")
+class FollowMe:
+    def __init__(self, session):
+        speech_event_listener = SpeechModule(session, "SpeechEventListener")
+        follow_person_module = FollowPersonModule(session)
 
-    follow_thread = Thread(target=FollowPersonModule.follow, args=[])
+        self.follow_thread = Thread(target=follow_person_module.follow, args=[])
+        self.speech_thread = Thread(target=speech_event_listener.subscribe_to_words,
+                                    args=[follow_person_module.change_mode])
 
-    speech_thread = Thread(target=SpeechEventListener.subscribe_to_words, args=[FollowPersonModule.change_mode])
+        self.speech_thread.start()
+        self.follow_thread.start()
 
-    speech_thread.start()
-    follow_thread.start()
-    speech_thread.join()
-    follow_thread.join()
+    def stop(self):
+        self.speech_thread.do_run = False
+        self.follow_thread.do_run = False
+
+    def __del__(self):
+        self.speech_thread.do_run = False
+        self.follow_thread.do_run = False

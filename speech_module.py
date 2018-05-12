@@ -1,15 +1,16 @@
+import threading
 from time import sleep
 
 
 class SpeechModule:
     def __init__(self, session, name):
+        self.do_run = True
         self.name = name
         self.asr_service = session.service("ALSpeechRecognition")
         self.memory = session.service("ALMemory")
 
         self.tts = session.service("ALTextToSpeech")
         self.tts.setLanguage("English")
-        self.tts.setVolume(1.2)
         self.tts.setParameter("speed", 90)
 
         self.asr_service.pause(True)
@@ -32,12 +33,16 @@ class SpeechModule:
         self.asr_service.unsubscribe(self.name)
 
     def subscribe_to_words(self, callback):
-        print("starting to wait for words")
-        self.memory.removeData("WordRecognized")
-        last_word = ''
-        threshold = 0.45
 
-        while True:
+        try:
+            self.memory.removeData("WordRecognized")
+        except RuntimeError:
+            print("failed to remove WordRecognized")
+        last_word = ''
+        threshold = 0.30
+
+        t = threading.currentThread()
+        while getattr(t, "do_run", True):
             try:
                 data = self.memory.getData("WordRecognized")
                 word = data[0]
@@ -53,7 +58,10 @@ class SpeechModule:
                     if last_word == 'stay' or last_word == 'stop':
                         callback("stop")
                         self.tts.say("I will stay here. Bye.")
+
             except RuntimeError:
                 print("getData WordRecognized is empty")
 
             sleep(0.1)
+
+        print "SpeechModule stopped."
