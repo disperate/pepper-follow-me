@@ -7,6 +7,11 @@ class SpeechModule:
         self.asr_service = session.service("ALSpeechRecognition")
         self.memory = session.service("ALMemory")
 
+        self.tts = session.service("ALTextToSpeech")
+        self.tts.setLanguage("English")
+        self.tts.setVolume(1.2)
+        self.tts.setParameter("speed", 90)
+
         self.asr_service.pause(True)
 
         # hack to prevent dictionary already set error
@@ -26,28 +31,29 @@ class SpeechModule:
         self.asr_service.pause(True)
         self.asr_service.unsubscribe(self.name)
 
-    def follow(self):
-        print("starting to follow in speech")
-
     def subscribe_to_words(self, callback):
         print("starting to wait for words")
+        self.memory.removeData("WordRecognized")
         last_word = ''
-        threshold = 0.3
+        threshold = 0.45
 
         while True:
-            data = self.memory.getData("WordRecognized")
-            word = data[0]
-            certainty = data[1]
-            # print(data)
-            if word != last_word and certainty > threshold:
-                last_word = word
+            try:
+                data = self.memory.getData("WordRecognized")
+                word = data[0]
+                certainty = data[1]
 
-                if last_word == 'follow':
-                    print("follow")
-                    callback("follow")
+                if word != last_word and certainty > threshold:
+                    last_word = word
 
-                if last_word == 'stay' or last_word == 'stop':
-                    print("stop")
-                    callback("stop")
+                    if last_word == 'follow':
+                        callback("follow")
+                        self.tts.say("Let's go")
+
+                    if last_word == 'stay' or last_word == 'stop':
+                        callback("stop")
+                        self.tts.say("I will stay here. Bye.")
+            except RuntimeError:
+                print("getData WordRecognized is empty")
 
             sleep(0.1)

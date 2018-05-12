@@ -49,6 +49,7 @@ class FollowPersonModule:
             sleep(1)
             if self.running:
                 if not self.tracker_service.isActive():
+                    print(self.tracker_service.isActive())
                     print("tracker activated")
                     self.tracker_service.trackEvent(self.event_name)
                 # print(self.motion_service.getOrthogonalSecurityDistance())
@@ -58,8 +59,10 @@ class FollowPersonModule:
                 print(position)
                 self.tracker_service.setRelativePosition([-0.5, 0.0, 0.0, 0.1, 0.1, 0.3])
             else:
-                self.tracker_service.stopTracker()
-                print("tracker deactivated")
+                if self.tracker_service.isActive():
+                    print(self.tracker_service.isActive())
+                    self.tracker_service.stopTracker()
+                    print("tracker deactivated")
 
         print "ALTracker stopped."
 
