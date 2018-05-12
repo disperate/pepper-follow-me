@@ -2,8 +2,8 @@ from threading import Thread
 
 import qi
 
-from follow_person import FollowPersonModule
-from speech_recognition import SpeechModule
+from follow_person_module import FollowPersonModule
+from speech_module import SpeechModule
 
 if __name__ == "__main__":
     connection_url = "amber.local:9559"
