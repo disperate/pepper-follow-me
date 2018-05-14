@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     try:
         while True:
-            sleep(1)
+            sleep(3)
     except KeyboardInterrupt:
         follow_me_module.stop()
         print "Stopping..."

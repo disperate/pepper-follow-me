@@ -1,3 +1,4 @@
+import random
 import threading
 from time import sleep
 
@@ -39,7 +40,7 @@ class SpeechModule:
         except RuntimeError:
             print("failed to remove WordRecognized")
         last_word = ''
-        threshold = 0.30
+        threshold = 0.35
 
         t = threading.currentThread()
         while getattr(t, "do_run", True):
@@ -53,11 +54,11 @@ class SpeechModule:
 
                     if last_word == 'follow':
                         callback("follow")
-                        self.tts.say("Let's go")
+                        self.tts.say(self.random_go_messge())
 
                     if last_word == 'stay' or last_word == 'stop':
                         callback("stop")
-                        self.tts.say("I will stay here. Bye.")
+                        self.tts.say(self.random_bye_messge())
 
             except RuntimeError:
                 print("getData WordRecognized is empty")
@@ -65,3 +66,11 @@ class SpeechModule:
             sleep(0.1)
 
         print "SpeechModule stopped."
+
+    def random_go_messge(self):
+        items = ['Lets go', 'Here we go', 'Im following you']
+        return items[random.randrange(len(items))]
+
+    def random_bye_messge(self):
+        items = ['Ok, pick me up later', 'I will stay here. Bye.', 'ok, Goodbye', 'yeah, we arrived', 'see you later']
+        return items[random.randrange(len(items))]
